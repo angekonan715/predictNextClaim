@@ -21,6 +21,7 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 
+
 from src import config
 from src.evaluate import choose_model, comparison_table
 from src.predict import predict_frame

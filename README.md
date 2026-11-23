@@ -4,7 +4,7 @@
 
 Which drivers are most likely to file a car insurance claim next year? This project estimates the probability that a policy has at least one claim, using three years of real, anonymised policy data from a Spanish motor insurer (2022–2024). It compares a formula (GLM), a logistic regression, a decision tree, a random forest, XGBoost, and LightGBM. LightGBM is the model in the web app.
 
-> 🚧 **Status:** the app is live. The write-up is still being finished.
+> The app, the notebooks, and the write-up are in place. Predictions are a study result, not an insurance quote.
 
 ---
 
@@ -12,9 +12,7 @@ Which drivers are most likely to file a car insurance claim next year? This proj
 
 https://angekonan715-predictnextclaim-appapp-vz9rsh.streamlit.app/
 
-<!-- Add a screenshot once the app is running:
 ![App screenshot](reports/figures/app_screenshot.png)
--->
 
 ---
 
@@ -32,7 +30,7 @@ The raw data is **not** included in this repository. See [`data/README.md`](data
 
 | Step | What | Where |
 |---|---|---|
-| 1. Data prep | Clean data, derive ages from dates, define the claim target | `src/data_prep.py`, `notebooks/01_eda.ipynb` |
+| 1. Data prep | Drop unusable rows, cap vehicle value, group rare brands, define the claim target | `src/data_prep.py`, `notebooks/01_eda.ipynb` |
 | 2. Exploration | Exposure-weighted claim rates by risk factor | `notebooks/01_eda.ipynb` |
 | 3. Modeling | GLM, logistic regression, decision tree, random forest, XGBoost, LightGBM | `src/train.py`, `notebooks/02_modeling.ipynb` |
 | 4. Evaluation | AUC, Gini, calibration, and risk tiers on 2024 | `src/evaluate.py`, `notebooks/03_evaluation.ipynb` |
@@ -55,7 +53,17 @@ The models learned from 2022 and 2023, then were tested on 2024. A higher AUC me
 | XGBoost | 0.683 | 0.366 | 0.003 |
 | **LightGBM** | **0.692** | **0.384** | **0.003** |
 
-LightGBM is the saved model. It adds hundreds of small trees, and each new tree corrects the policies the earlier trees got wrong. The GLM is still the model to read when you want one percentage effect: a typical gap in vehicle value multiplies the claim rate by about 1.16, and a typical gap in vehicle age multiplies it by about 0.82.
+LightGBM is the saved model. It adds hundreds of small trees, and each new tree corrects the policies the earlier trees got wrong. About half of its splits use time on cover. The app fixes that at one full year. After that, coverage, vehicle value, and vehicle age move the score the most.
+
+The claim rate itself is highest for younger drivers, newer cars, more expensive cars, broader cover, and a poor past-claims record. Details, the calibration and lift charts, and the fairness check are in [`reports/final_report.md`](reports/final_report.md). A one-page version is [`reports/executive_summary.md`](reports/executive_summary.md). Slides are [`reports/presentation.pptx`](reports/presentation.pptx).
+
+![Where the claim rate changes](reports/figures/claim_rates.png)
+
+![Which model sorts best](reports/figures/model_comparison.png)
+
+![Calibration on 2024](reports/figures/calibration.png)
+
+![What LightGBM uses](reports/figures/feature_importance.png)
 
 ---
 
