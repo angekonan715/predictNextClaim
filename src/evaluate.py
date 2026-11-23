@@ -1,7 +1,7 @@
 """Evaluation helpers used in notebooks/03_evaluation.ipynb."""
 import numpy as np
 import pandas as pd
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import brier_score_loss, roc_auc_score
 
 
 def gini(y_true, y_pred) -> float:
@@ -39,6 +39,48 @@ def calibration_table(y_true, y_pred, n_bins: int = 10) -> pd.DataFrame:
         .agg(n=("actual", "size"), predicted_rate=("pred", "mean"), actual_rate=("actual", "mean"))
         .reset_index()
     )
+
+
+def comparison_table(y_true, predictions: dict) -> pd.DataFrame:
+    """One row per model: ranking (AUC, Gini) and whether the probability is honest.
+
+    calibration_gap is the average distance between the predicted rate and the
+    observed claim rate across ten bins. Smaller is better. Brier is the average
+    squared error of the probabilities. Smaller is better.
+    """
+    y_true = np.asarray(y_true)
+    rows = {}
+    for name, y_pred in predictions.items():
+        y_pred = np.asarray(y_pred, dtype=float)
+        cal = calibration_table(y_true, y_pred)
+        gap = np.average(np.abs(cal["predicted_rate"] - cal["actual_rate"]), weights=cal["n"])
+        auc = roc_auc_score(y_true, y_pred)
+        rows[name] = {
+            "AUC": auc,
+            "Gini": 2 * auc - 1,
+            "Brier": brier_score_loss(y_true, y_pred),
+            "calibration_gap": gap,
+            "mean_predicted": y_pred.mean(),
+        }
+    return pd.DataFrame.from_dict(rows, orient="index")
+
+
+def choose_model(scores: pd.DataFrame) -> str:
+    """Choose the model for the app from a comparison_table.
+
+    Highest AUC on the 2024 test wins. A simpler model takes the win when it is
+    within 0.005 AUC and its calibration gap is within 0.002 of the best close
+    model. That gap is too small to give up a model you can explain.
+    """
+    simpler_first = ["glm", "logistic", "tree", "forest", "xgboost", "lgbm"]
+    best_auc = scores["AUC"].max()
+    close = scores.loc[scores["AUC"] >= best_auc - 0.005]
+    best_gap = close["calibration_gap"].min()
+    candidates = close.loc[close["calibration_gap"] <= best_gap + 0.002]
+    for name in simpler_first:
+        if name in candidates.index:
+            return name
+    return scores["AUC"].idxmax()
 
 
 def assign_risk_tier(prob, cutoffs: dict) -> np.ndarray:

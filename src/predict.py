@@ -14,14 +14,22 @@ def load_model(path=config.MODEL_FILE) -> dict:
     return joblib.load(path)
 
 
+def predict_frame(model_type: str, model, data: pd.DataFrame) -> np.ndarray:
+    """Probability of at least one claim for each row already in `data`.
+
+    The GLM adds log(exposure) as an offset. Every other model reads exposure
+    as a column. `data` must already contain the predictors and exposure.
+    """
+    if model_type == "glm":
+        offset = np.log(data[config.EXPOSURE_COL])
+        return np.asarray(model.predict(data, offset=offset))
+
+    columns = config.FEATURES + [config.EXPOSURE_COL]
+    return np.asarray(model.predict_proba(data[columns])[:, 1])
+
+
 def predict_claim_probability(bundle: dict, inputs: pd.DataFrame, exposure: float = 1.0) -> np.ndarray:
     """Probability of at least one claim over `exposure` years (default: a full year)."""
-    X = inputs.copy()
-    X[bundle["exposure_col"]] = exposure
-
-    if bundle["model_type"] == "glm":
-        offset = np.log(X[bundle["exposure_col"]])
-        return np.asarray(bundle["model"].predict(X, offset=offset))
-
-    cols = bundle["numeric_features"] + bundle["categorical_features"] + [bundle["exposure_col"]]
-    return bundle["model"].predict_proba(X[cols])[:, 1]
+    frame = inputs.copy()
+    frame[bundle["exposure_col"]] = exposure
+    return predict_frame(bundle["model_type"], bundle["model"], frame)

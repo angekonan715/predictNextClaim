@@ -2,7 +2,7 @@
 
 **Senior project · Data Science major, Statistics minor**
 
-Which drivers are most likely to file a car insurance claim next year? This project models the probability that a policy has at least one claim in the coming year, using three years of real, anonymised policy data from a Spanish motor insurer (2022–2024). It compares a traditional actuarial GLM with a gradient boosting model and turns the final model into a small web app where anyone can enter driver and vehicle details and see an estimated claim probability.
+Which drivers are most likely to file a car insurance claim next year? This project estimates the probability that a policy has at least one claim, using three years of real, anonymised policy data from a Spanish motor insurer (2022–2024). It compares a formula (GLM), a logistic regression, a decision tree, a random forest, XGBoost, and LightGBM. LightGBM is the model in the web app.
 
 > 🚧 **Status:** in progress. Results and app link will be added as the project develops.
 
@@ -34,8 +34,8 @@ The raw data is **not** included in this repository. See [`data/README.md`](data
 |---|---|---|
 | 1. Data prep | Clean data, derive ages from dates, define the claim target | `src/data_prep.py`, `notebooks/01_eda.ipynb` |
 | 2. Exploration | Exposure-weighted claim rates by risk factor | `notebooks/01_eda.ipynb` |
-| 3. Modeling | Binomial GLM (cloglog link, exposure offset) vs. LightGBM | `src/train.py`, `notebooks/02_modeling.ipynb` |
-| 4. Evaluation | AUC, Gini, lift, calibration, SHAP, fairness check, risk tiers | `src/evaluate.py`, `notebooks/03_evaluation.ipynb` |
+| 3. Modeling | GLM, logistic regression, decision tree, random forest, XGBoost, LightGBM | `src/train.py`, `notebooks/02_modeling.ipynb` |
+| 4. Evaluation | AUC, Gini, calibration, and risk tiers on 2024 | `src/evaluate.py`, `notebooks/03_evaluation.ipynb` |
 | 5. App | Streamlit form → predicted claim probability and risk tier | `app/app.py` |
 
 **Validation design:** models are trained on 2022–2023 and tested on 2024 (out-of-time), which mirrors how an insurer would actually use the model and avoids leakage from the same policy appearing in both sets.
@@ -44,12 +44,18 @@ The raw data is **not** included in this repository. See [`data/README.md`](data
 
 ## Key results
 
-_To be completed._
+Trained on 2022–2023, scored on 2024. Higher AUC and Gini mean better ranking. A smaller calibration gap means the predicted chance is closer to the claim rate that actually happened.
 
-| Model | Test AUC | Gini | Notes |
+| Model | Test AUC | Gini | Calibration gap |
 |---|---|---|---|
-| GLM (cloglog) | – | – | |
-| LightGBM | – | – | |
+| GLM | 0.643 | 0.286 | 0.005 |
+| Logistic regression | 0.642 | 0.283 | 0.010 |
+| Decision tree | 0.638 | 0.275 | 0.006 |
+| Random forest | 0.648 | 0.295 | 0.004 |
+| XGBoost | 0.648 | 0.295 | 0.004 |
+| **LightGBM** | **0.655** | **0.310** | **0.003** |
+
+LightGBM is the saved model. It adds hundreds of small trees, and each new tree corrects the policies the earlier trees got wrong. The GLM is still the model to read when you want one percentage effect: a typical gap in vehicle value multiplies the claim rate by about 1.16, and a typical gap in vehicle age multiplies it by about 0.82.
 
 ---
 

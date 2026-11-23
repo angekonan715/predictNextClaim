@@ -12,8 +12,10 @@ import pandas as pd
 from src import config
 
 
-def load_raw(file_name: str = config.RAW_DATA_FILE) -> pd.DataFrame:
+def load_raw(file_name: str | None = None) -> pd.DataFrame:
     """Read the downloaded dataset (Excel or CSV)."""
+    if file_name is None:
+        file_name = config.RAW_DATA_FILE
     path = config.RAW_DIR / file_name
     if not path.exists():
         raise FileNotFoundError(
@@ -22,7 +24,11 @@ def load_raw(file_name: str = config.RAW_DATA_FILE) -> pd.DataFrame:
         )
     if path.suffix in (".xlsx", ".xls"):
         return pd.read_excel(path)
-    return pd.read_csv(path)
+    # The Mendeley export separates fields with semicolons.
+    with path.open("r", encoding="utf-8", errors="replace") as handle:
+        header = handle.readline()
+    sep = ";" if header.count(";") > header.count(",") else ","
+    return pd.read_csv(path, sep=sep)
 
 
 def clean(df: pd.DataFrame) -> pd.DataFrame:
