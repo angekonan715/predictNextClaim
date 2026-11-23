@@ -32,7 +32,7 @@ The rate in the charts is not a simple average of that 0/1 flag. It is claims di
 
 A column is used only if the insurer would already know it on the first day of that policy year.
 
-Kept: driver age, years with a licence, vehicle age, vehicle value, seats, weight per horsepower, fuel, brand, coverage, new versus existing policy, payment schedule, past-claims record, home area (inland, coast, or island), and town versus country. Time on cover is included so a partial year is not treated as a full year.
+Kept: driver age, years with a licence, vehicle age, vehicle value, weight per horsepower, fuel, brand, coverage, new versus existing policy, payment schedule, past-claims record, and town versus country. Time on cover is included so a partial year is not treated as a full year. Seats and home area were tried and then left out. Each was 0.6% of the splits, and the claim rate barely moved.
 
 Left out:
 
@@ -120,7 +120,7 @@ Gain measures how much each fact contributed to the splits. One-hot columns are 
 | Payment schedule | 3% |
 | Years with a licence | 2% |
 | Brand | 2% |
-| Fuel, past claims, town or country, new or existing policy, home area, seats | about 1% or less each |
+| Fuel, past claims, town or country, new or existing policy | about 1% or less each |
 
 Time on cover dominates because a policy that was active for a short time has less time to claim. The app fixes that input at one full year. The facts that then change from one driver to the next start with coverage, vehicle value, and vehicle age.
 
@@ -134,7 +134,7 @@ Since 2012, insurers in the European Union cannot use gender to set a price. Gen
 
 It does not. None of the 47 columns is sex, gender, `sexo`, or `genero`. The model cannot be refit with and without gender, and a difference in scores for women and men cannot be measured from this file.
 
-Other columns can still carry a social pattern. Past claims, payment schedule, and home area all move the claim rate a little. They stay in the model because they are known on the first day of the year and they describe the policy. They are not a stand-in that was built to recover gender. Without a gender column, that recovery cannot be tested here.
+Other columns can still carry a social pattern. Past claims and payment schedule move the claim rate a little. They stay in the model because they are known on the first day of the year and they describe the policy. They are not a stand-in that was built to recover gender. Without a gender column, that recovery cannot be tested here. Home area was left out: inland, coast, and islands differ by only about 3 claims per 100 years on cover.
 
 ## 10. The app
 

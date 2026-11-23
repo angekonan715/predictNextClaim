@@ -160,7 +160,7 @@ bullets(slide, [
     "Gender is not a feature in this model.",
     "None of the 47 columns is sex, gender, or a Spanish equivalent.",
     "A with-versus-without comparison cannot be run. A gap between women and men cannot be measured from this file.",
-    "Past claims, payment schedule, and home area stay in, because they are known on day one. They were not built to stand in for gender.",
+    "Past claims and payment schedule stay in, because they are known on day one. They were not built to stand in for gender. Home area and seats were left out.",
 ], 0.7, 1.45, 11.8, 5.2, size=22)
 
 # 11. App

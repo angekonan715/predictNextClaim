@@ -292,6 +292,13 @@ st.markdown(
     }}
     .board,
     .st-key-models_page,
+    .st-key-chosen_page,
+    .st-key-versus_page,
+    .st-key-settings_page,
+    .st-key-data_page,
+    .st-key-prep_page,
+    .st-key-dict_page,
+    .st-key-reading_page,
     .st-key-drivers_page {{
       max-width: 980px;
       margin: 0 auto;
@@ -357,9 +364,10 @@ st.markdown(
       font-size: 0.9rem;
       line-height: 1.4;
     }}
+    .why-grid {{ grid-template-columns: 1fr 1fr; }}
     .steps {{
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 0.75rem;
     }}
     .steps div {{
@@ -484,6 +492,12 @@ st.markdown(
       color: {NAVY};
       font-weight: 650;
     }}
+    .fit-table.dict th, .fit-table.dict td {{
+      text-align: left;
+      white-space: normal;
+      font-size: 0.88rem;
+      line-height: 1.35;
+    }}
     [data-testid="stImage"] img {{
       max-width: 100%;
       height: auto;
@@ -519,19 +533,26 @@ st.markdown(
     }}
     .st-key-result_card .kicker,
     .st-key-result_card .kicker span {{
-      color: rgba(255, 255, 255, 0.72);
+      color: #FFFFFF;
+      font-size: 0.95rem;
     }}
     .st-key-result_card div[data-testid="stMetric"] {{
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.28);
     }}
-    .st-key-result_card div[data-testid="stMetricLabel"],
-    .st-key-result_card [data-testid="stCaptionContainer"] {{
-      color: rgba(255, 255, 255, 0.76);
+    .st-key-result_card [data-testid="stMetricLabel"],
+    .st-key-result_card [data-testid="stMetricLabel"] p,
+    .st-key-result_card [data-testid="stCaptionContainer"],
+    .st-key-result_card [data-testid="stCaptionContainer"] p {{
+      color: #FFFFFF !important;
+      font-size: 1.05rem !important;
+      line-height: 1.35 !important;
+      -webkit-text-fill-color: #FFFFFF;
     }}
-    .st-key-result_card div[data-testid="stMetricValue"] {{
-      color: #FFFFFF;
-      font-size: 2.4rem;
+    .st-key-result_card div[data-testid="stMetricValue"],
+    .st-key-result_card div[data-testid="stMetricValue"] div {{
+      color: #FFFFFF !important;
+      font-size: 2.5rem !important;
     }}
     div[data-testid="stMetric"] {{
       background: {PAPER};
@@ -682,15 +703,17 @@ comparison_file = config.FIGURES_DIR / "model_comparison.csv"
 scores = pd.read_csv(comparison_file, index_col=0) if comparison_file.exists() else None
 
 with st.container(key="deck"):
-    overview, compare, drivers, estimate = st.columns(4, gap="small")
+    (
+        overview, data, dictionary, prep, compare, choice, versus, settings, drivers, reading, estimate,
+    ) = st.columns(11, gap="small")
 
     with overview:
         auc = gap = chance = "—"
         if scores is not None and "LightGBM" in scores.index:
-            chosen = scores.loc["LightGBM"]
-            auc = f"{chosen['AUC']:.3f}"
-            gap = f"{chosen['calibration_gap']:.3f}"
-            chance = f"{chosen['mean_predicted']:.0%}"
+            best = scores.loc["LightGBM"]
+            auc = f"{best['AUC']:.3f}"
+            gap = f"{best['calibration_gap']:.3f}"
+            chance = f"{best['mean_predicted']:.0%}"
         note = bundle.get("note", "The saved model estimates the probability of at least one claim.")
         st.markdown(
             f"""
@@ -717,21 +740,48 @@ with st.container(key="deck"):
                   <p>The estimate is for a policy in force all next year. Low, Medium, and High are the lower, middle, and upper third of those scores.</p>
                 </article>
               </div>
-              <div class="steps">
-                <div><b>01</b><span>The question and the 2024 check</span></div>
-                <div><b>02</b><span>Six models, side by side</span></div>
-                <div><b>03</b><span>Which facts move the score</span></div>
-                <div><b>04</b><span>An estimate for one full year</span></div>
-              </div>
+              <p class="foot" style="border:0;padding-top:0;margin-top:0">Move sideways, in the order the work was done: where the data comes from, the fields, the cleaning, the six models, why LightGBM won, and then the estimate.</p>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
+    with data:
+        with st.container(key="data_page"):
+            st.markdown(
+                """
+                <div class="board">
+                  <header class="board-head">
+                    <p class="kicker"><span>02</span> The data</p>
+                    <h2>Where the policies come from</h2>
+                    <p>Anonymised car policies from a Spanish insurer, published by Espinosa, Lledó, and Atance del Olmo (2026) on Mendeley Data.</p>
+                  </header>
+                  <div class="metrics">
+                    <div class="metric"><span>Policy-years</span><b>354,140</b><p>One row is one policy in one calendar year.</p></div>
+                    <div class="metric"><span>Columns in the file</span><b>47</b><p>There is no gender column.</p></div>
+                    <div class="metric"><span>Years in the file</span><b>2022–2024</b><p>The same policy keeps the same anonymous id.</p></div>
+                  </div>
+                  <div class="board-grid why-grid">
+                    <article class="panel">
+                      <h3>What was used to learn</h3>
+                      <p>2022 and 2023: 185,720 rows. About 13.6% of those policies had at least one claim. A claim is recorded as 1 when the claim count is above zero, and 0 otherwise.</p>
+                      <p class="foot">Most policy-years have no claim. The largest count in the file is 18.</p>
+                    </article>
+                    <article class="panel">
+                      <h3>What was kept for the check</h3>
+                      <p>2024 was not used while the model learned. It has 167,853 rows, and about 15.1% of them claimed. That is the year the scores on the first slide come from.</p>
+                      <p class="foot">Cleaning later keeps 353,573 of the 354,140 rows. The next slide names the fields that matter most.</p>
+                    </article>
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
     with compare:
         with st.container(key="models_page"):
             slide_heading(
-                "02",
+                "05",
                 "Models",
                 "How the six models compared",
                 "Trained on 2022–2023 and checked on 2024. A higher sorting score is better.",
@@ -739,7 +789,7 @@ with st.container(key="deck"):
             if scores is not None:
                 comparison_table(scores)
                 plot_df = scores.sort_values("AUC", ascending=True)
-                fig, ax = plt.subplots(figsize=(8.0, 1.7))
+                fig, ax = plt.subplots(figsize=(8.0, 1.55))
                 style_axes(fig, ax)
                 bar_colors = [NAVY if name == "LightGBM" else SLATE for name in plot_df.index]
                 ax.barh(plot_df.index.astype(str), plot_df["AUC"], color=bar_colors)
@@ -755,10 +805,37 @@ with st.container(key="deck"):
                 show_chart(fig)
                 st.caption("The darkest bar is the model used in the app. The axis is zoomed in.")
 
+    with reading:
+        with st.container(key="reading_page"):
+            st.markdown(
+                """
+                <div class="board">
+                  <header class="board-head">
+                    <p class="kicker"><span>10</span> Reading the results</p>
+                    <h2>What the results mean</h2>
+                    <p>The model is useful for sorting drivers. It is not a perfect prediction of who will claim.</p>
+                  </header>
+                  <div class="board-grid why-grid">
+                    <article class="panel">
+                      <h3>The 2024 check</h3>
+                      <p>LightGBM’s 0.692 sorting score beats a coin flip. The 0.003 calibration gap means the average predicted chance matches the claims that happened.</p>
+                      <p class="foot">About 15% of 2024 policies claimed, and the model predicted about 15%.</p>
+                    </article>
+                    <article class="panel">
+                      <h3>What moves a score</h3>
+                      <p>Time on cover is about half of the model’s splits, because a partial year has less time to claim. The estimate fixes that at a full year, so coverage, vehicle value, and vehicle age are what change from one driver to the next.</p>
+                      <p class="foot">Broader cover shows a higher claim rate partly because it pays for more kinds of damage.</p>
+                    </article>
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
     with estimate:
         with st.container(key="estimate_page"):
             slide_heading(
-                "04",
+                "11",
                 "Estimate",
                 "A full next year",
                 "Enter the driver, the car, the coverage, and where the car is driven.",
@@ -801,16 +878,13 @@ with st.container(key="deck"):
                         "That is a clue about the customer, not proof that the payment plan causes a claim.",
                     )
                 policy_type = pick("policy_type", "Coverage")
-                j, k, m = st.columns(3)
+                j, k = st.columns(2)
                 with j:
-                    municipality_type = pick("municipality_type", "Home area")
-                with k:
                     circulation_area = pick("circulation_area", "Usual driving")
-                with m:
-                    seats = st.slider("Seats", 2, 9, 5)
-                power_to_weight_ratio = st.number_input(
-                    "Weight per horsepower", 4.0, 40.0, 12.0, step=0.1,
-                )
+                with k:
+                    power_to_weight_ratio = st.number_input(
+                        "Weight per horsepower", 4.0, 40.0, 12.0, step=0.1,
+                    )
                 submitted = st.form_submit_button("Estimate my risk", width="stretch")
 
         if submitted:
@@ -819,7 +893,6 @@ with st.container(key="deck"):
                 "vehicle_age": vehicle_age,
                 "age_driving_licence": years_licensed,
                 "vehicle_value": vehicle_value,
-                "seats": seats,
                 "power_to_weight_ratio": power_to_weight_ratio,
                 "bonus_score": bonus_score,
                 "policy_type": policy_type,
@@ -827,7 +900,6 @@ with st.container(key="deck"):
                 "payment_frequency": payment_frequency,
                 "fuel_type": fuel_type,
                 "vehicle_brand": vehicle_brand,
-                "municipality_type": municipality_type,
                 "circulation_area": circulation_area,
             }])
             prob = float(predict_claim_probability(bundle, user)[0])
@@ -839,20 +911,155 @@ with st.container(key="deck"):
             with st.container(key="result_card"):
                 st.markdown('<p class="kicker">Result</p>', unsafe_allow_html=True)
                 if "last_prob" in st.session_state:
-                    st.metric("Chance of a claim next year", f"{st.session_state['last_prob']:.1%}")
-                    st.metric("Compared with other policies", st.session_state["last_tier"])
+                    st.metric("Chance next year", f"{st.session_state['last_prob']:.1%}")
+                    st.metric("Risk group", st.session_state["last_tier"])
                     st.caption(
-                        f"Low is under {cutoffs['Low']:.1%}, Medium is under {cutoffs['Medium']:.1%}, "
-                        "and High is above that."
+                        f"Low is under {cutoffs['Low']:.1%}. Medium is under {cutoffs['Medium']:.1%}. "
+                        "High is above that."
                     )
                 else:
-                    st.metric("Chance of a claim next year", "—")
-                    st.caption("The chance appears here after you estimate.")
+                    st.metric("Chance next year", "—")
+                    st.metric("Risk group", "—")
+                    st.caption("Press Estimate my risk. The chance and the group appear here.")
+
+    with choice:
+        with st.container(key="chosen_page"):
+            st.markdown(
+                """
+                <div class="board">
+                  <header class="board-head">
+                    <p class="kicker"><span>06</span> The choice</p>
+                    <h2>Why LightGBM</h2>
+                    <p>Six models learned from 2022 and 2023. They were then scored on 2024, a year they had not seen.</p>
+                  </header>
+                  <div class="board-grid why-grid">
+                    <article class="panel">
+                      <h3>The rule</h3>
+                      <p>The highest sorting score wins. A simpler model can replace it only when it is within 0.005 on that score and within 0.002 on the calibration gap.</p>
+                      <p class="foot">LightGBM led at 0.692. XGBoost was 0.682, which is 0.010 behind, so the simpler-model rule did not apply.</p>
+                    </article>
+                    <article class="panel">
+                      <h3>How to read the scores</h3>
+                      <p>A sorting score of 0.50 is a coin flip. 0.692 means LightGBM puts drivers who claimed above drivers who did not, more often than chance. It is not a perfect ranking.</p>
+                      <p class="foot">The calibration gap is 0.003. A predicted 15% happened about 15% of the time on the 2024 policies.</p>
+                    </article>
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    with versus:
+        with st.container(key="versus_page"):
+            st.markdown(
+                """
+                <div class="board">
+                  <header class="board-head">
+                    <p class="kicker"><span>07</span> Two boosted models</p>
+                    <h2>LightGBM and XGBoost</h2>
+                    <p>Both add 300 small trees. Each new tree corrects the policies the earlier trees scored too high or too low. The learning rate, 0.05, keeps each correction small.</p>
+                  </header>
+                  <div class="board-grid why-grid">
+                    <article class="panel">
+                      <h3>XGBoost</h3>
+                      <p>It grows a tree level by level. Every branch stops after 4 questions. Each tree sees a random 80% of the policies and 80% of the columns.</p>
+                      <p class="foot">Its 2024 sorting score was 0.682, with the same 0.003 calibration gap as LightGBM.</p>
+                    </article>
+                    <article class="panel">
+                      <h3>LightGBM</h3>
+                      <p>It splits the leaf that reduces the error the most, so one side of a tree can be deeper than the other. A tree may have at most 31 end groups. Each tree uses every training row and every column.</p>
+                      <p class="foot">It also groups similar numbers into bins before it looks for a split, which is why it is built for large files.</p>
+                    </article>
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    with settings:
+        with st.container(key="settings_page"):
+            st.markdown(
+                """
+                <div class="board">
+                  <header class="board-head">
+                    <p class="kicker"><span>08</span> The chosen settings</p>
+                    <h2>LightGBM parameters</h2>
+                    <p>These are the settings saved in the app. No class weights were used, and training did not stop early.</p>
+                  </header>
+                  <table class="fit-table">
+                    <thead><tr><th>Setting</th><th>Value</th><th>What it does</th></tr></thead>
+                    <tbody>
+                      <tr><td>Trees</td><td>300</td><td>How many correcting trees are added</td></tr>
+                      <tr><td>Learning rate</td><td>0.05</td><td>How large each tree's correction is</td></tr>
+                      <tr><td>Leaves</td><td>31</td><td>Most end groups one tree may have</td></tr>
+                      <tr><td>Minimum policies</td><td>200</td><td>A split must leave at least this many policies on each side</td></tr>
+                      <tr><td>Random start</td><td>42</td><td>A rerun builds the same model</td></tr>
+                    </tbody>
+                  </table>
+                  <p class="foot" style="border:0">Numbers stay on their original scale. Categories such as coverage and brand become yes-or-no columns. Time on cover is one of those columns.</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    with prep:
+        with st.container(key="prep_page"):
+            st.markdown(
+                """
+                <div class="board">
+                  <header class="board-head">
+                    <p class="kicker"><span>04</span> Preparing the data</p>
+                    <h2>Feature engineering</h2>
+                    <p>No new calculated columns were added. The work was cleaning and grouping, using 2022–2023 only, so 2024 could not influence the choices.</p>
+                  </header>
+                  <div class="board-grid why-grid">
+                    <article class="panel">
+                      <h3>What was built</h3>
+                      <p>The target is 1 when the policy had at least one claim, and 0 otherwise. Missing fuel is kept as its own group, Unknown.</p>
+                      <p class="foot">Vehicle value is capped at the training 99th percentile, 71,122. A brand with fewer than 1,000 training policies is grouped as Other.</p>
+                    </article>
+                    <article class="panel">
+                      <h3>What was left out</h3>
+                      <p>Rows were dropped when time on cover was not positive, a required number was missing, driver age was under 16, or an age or the weight ratio was negative. That kept 353,573 of 354,140 rows.</p>
+                      <p class="foot">Premiums, claim counts, claim costs, and policy status stay out. Seats and home area stay out too: each was under 1% of the splits, and the claim rate barely moved.</p>
+                    </article>
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    with dictionary:
+        with st.container(key="dict_page"):
+            st.markdown(
+                """
+                <div class="board">
+                  <header class="board-head">
+                    <p class="kicker"><span>03</span> Data dictionary</p>
+                    <h2>The facts that matter most</h2>
+                    <p>These are the fields the model uses most, in plain words.</p>
+                  </header>
+                  <table class="fit-table dict">
+                    <thead><tr><th>Fact</th><th>Meaning</th><th>What the data showed</th></tr></thead>
+                    <tbody>
+                      <tr><td>Time on cover</td><td>Fraction of the year the policy was in force. A full year is 1.</td><td>A short policy has less time to claim. The app sets this to 1.</td></tr>
+                      <tr><td>Coverage</td><td>Third party, third party plus glass, combined, or comprehensive.</td><td>Third party is about 10 claims per 100 years. Comprehensive with no excess is about 41.</td></tr>
+                      <tr><td>Vehicle value</td><td>Declared insured value of the car, capped at 71,122.</td><td>More expensive cars claim more often.</td></tr>
+                      <tr><td>Vehicle age</td><td>Age of the car, in years.</td><td>Cars under 5 years claim about 31 per 100 years. Cars over 20 claim about 19.</td></tr>
+                      <tr><td>Weight per horsepower</td><td>Kilograms per horsepower. Higher means a heavier, less powerful car.</td><td>The claim rate falls a little as this number rises.</td></tr>
+                      <tr><td>Driver age</td><td>Age of the main driver. The file runs from 18 to 90.</td><td>The claim rate falls as age rises.</td></tr>
+                      <tr><td>Payment</td><td>Billed once a year, twice a year, or every three months.</td><td>Quarterly payers claim more often. That is a clue, not a cause.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
     with drivers:
         with st.container(key="drivers_page"):
             slide_heading(
-                "03",
+                "09",
                 "Drivers of the score",
                 "What the model uses most",
                 "Each bar is how much that fact is used. Time on cover is largest because a short policy has less time to claim.",
@@ -884,4 +1091,4 @@ with st.container(key="deck"):
                     unsafe_allow_html=True,
                 )
 
-deck_controls(3 if submitted else None)
+deck_controls(10 if submitted else None)

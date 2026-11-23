@@ -27,12 +27,13 @@ TARGET = "claim"                 # created in data_prep.make_target()
 # --- Predictors ----------------------------------------------------------
 # Known on the first day of the policy year. Claim counts, costs, premiums,
 # and policy_status are left out because they are recorded later in the year.
+# Seats and home area (municipality_type) are left out because each was under
+# 1% of LightGBM's splits and the claim rate barely moved.
 NUMERIC_FEATURES = [
     "driver_age",
     "vehicle_age",
     "age_driving_licence",
     "vehicle_value",
-    "seats",
     "power_to_weight_ratio",
 ]
 CATEGORICAL_FEATURES = [
@@ -42,7 +43,6 @@ CATEGORICAL_FEATURES = [
     "payment_frequency",
     "fuel_type",
     "vehicle_brand",
-    "municipality_type",
     "circulation_area",
 ]
 FEATURES = NUMERIC_FEATURES + CATEGORICAL_FEATURES
@@ -60,4 +60,4 @@ RANDOM_STATE = 42
 # --- App -----------------------------------------------------------------
 # Full-year LightGBM probabilities on the 2024 test, split into thirds.
 # Low is the lower third, Medium the middle third, High the upper third.
-RISK_TIER_CUTOFFS = {"Low": 0.141, "Medium": 0.196}  # above Medium cutoff = High
+RISK_TIER_CUTOFFS = {"Low": 0.140, "Medium": 0.195}  # above Medium cutoff = High
