@@ -54,7 +54,7 @@ MODEL_NOTES = {
     "lgbm": (
         "LightGBM estimates the chance of at least one claim by adding hundreds of small decision trees. "
         "Each new tree corrects the policies the earlier trees scored too high or too low. "
-        "The inputs are driver age, vehicle age, vehicle value, and how much of the year the policy was in force."
+        "It uses the driver, the car, the coverage, where the car is driven, and how much of the year the policy was in force."
     ),
 }
 
@@ -234,6 +234,29 @@ def _tier_cutoffs(model_type: str, model, test: pd.DataFrame) -> dict:
     return {"Low": float(low), "Medium": float(medium)}
 
 
+def save_comparison(shown: pd.DataFrame) -> None:
+    """Write the 2024 comparison table and bar chart for the notebook and the app."""
+    import matplotlib.pyplot as plt
+
+    config.FIGURES_DIR.mkdir(parents=True, exist_ok=True)
+    table = shown.round(3).sort_values("AUC", ascending=False)
+    table.to_csv(config.FIGURES_DIR / "model_comparison.csv")
+
+    plot_df = table.sort_values("AUC", ascending=True)
+    colors = ["#F58518" if name == "LightGBM" else "#4C78A8" for name in plot_df.index]
+    fig, ax = plt.subplots(figsize=(8, 4.2))
+    ax.barh(plot_df.index.astype(str), plot_df["AUC"], color=colors)
+    span = float(plot_df["AUC"].max() - plot_df["AUC"].min())
+    ax.set_xlim(float(plot_df["AUC"].min()) - max(0.02, span), float(plot_df["AUC"].max()) + 0.015)
+    ax.set_xlabel("Sorting score on 2024 (higher is better)")
+    ax.set_title("Which model is best at sorting who will file a claim")
+    for i, value in enumerate(plot_df["AUC"]):
+        ax.text(value + 0.001, i, f"{value:.3f}", va="center", fontsize=9)
+    fig.tight_layout()
+    fig.savefig(config.FIGURES_DIR / "model_comparison.png", dpi=150)
+    plt.close(fig)
+
+
 def main():
     train = pd.read_csv(config.TRAIN_FILE)
     test = pd.read_csv(config.TEST_FILE)
@@ -243,6 +266,7 @@ def main():
     scores = score_models(models, test)
     shown = scores.rename(index=DISPLAY_NAMES)
     print(shown.round(3).to_string())
+    save_comparison(shown)
 
     winner = choose_model(scores)
     print(f"\nChosen for the app: {DISPLAY_NAMES[winner]}")

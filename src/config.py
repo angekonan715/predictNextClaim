@@ -25,16 +25,31 @@ CLAIM_COUNT_COL = "total_claims"  # all coverages; target is 1 if this is > 0
 TARGET = "claim"                 # created in data_prep.make_target()
 
 # --- Predictors ----------------------------------------------------------
-# TODO: choose 10–15 predictors after EDA. Use names AFTER cleaning/feature creation.
-# Names must be columns in the training file. This dataset has no
-# years_licensed or vehicle_type column (licence tenure is age_driving_licence).
+# Known on the first day of the policy year. Claim counts, costs, premiums,
+# and policy_status are left out because they are recorded later in the year.
 NUMERIC_FEATURES = [
     "driver_age",
     "vehicle_age",
+    "age_driving_licence",
     "vehicle_value",
+    "seats",
+    "power_to_weight_ratio",
 ]
-CATEGORICAL_FEATURES = []
+CATEGORICAL_FEATURES = [
+    "bonus_score",
+    "policy_type",
+    "business_type",
+    "payment_frequency",
+    "fuel_type",
+    "vehicle_brand",
+    "municipality_type",
+    "circulation_area",
+]
 FEATURES = NUMERIC_FEATURES + CATEGORICAL_FEATURES
+
+# Brands with fewer training policies than this are grouped into "Other".
+MIN_BRAND_COUNT = 1000
+LEVELS_FILE = PROCESSED_DIR / "feature_levels.json"
 
 # --- Validation design ---------------------------------------------------
 TRAIN_YEARS = [2022, 2023]
@@ -45,4 +60,4 @@ RANDOM_STATE = 42
 # --- App -----------------------------------------------------------------
 # Full-year LightGBM probabilities on the 2024 test, split into thirds.
 # Low is the lower third, Medium the middle third, High the upper third.
-RISK_TIER_CUTOFFS = {"Low": 0.166, "Medium": 0.196}  # above Medium cutoff = High
+RISK_TIER_CUTOFFS = {"Low": 0.141, "Medium": 0.196}  # above Medium cutoff = High

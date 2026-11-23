@@ -44,16 +44,16 @@ The raw data is **not** included in this repository. See [`data/README.md`](data
 
 ## Key results
 
-Trained on 2022–2023, scored on 2024. Higher AUC and Gini mean better ranking. A smaller calibration gap means the predicted chance is closer to the claim rate that actually happened.
+The models learned from 2022 and 2023, then were tested on 2024. A higher AUC means the model is better at putting drivers who claimed above drivers who did not. A smaller calibration gap means the predicted percentage is close to what really happened.
 
 | Model | Test AUC | Gini | Calibration gap |
 |---|---|---|---|
-| GLM | 0.643 | 0.286 | 0.005 |
-| Logistic regression | 0.642 | 0.283 | 0.010 |
-| Decision tree | 0.638 | 0.275 | 0.006 |
-| Random forest | 0.648 | 0.295 | 0.004 |
-| XGBoost | 0.648 | 0.295 | 0.004 |
-| **LightGBM** | **0.655** | **0.310** | **0.003** |
+| GLM | 0.679 | 0.359 | 0.005 |
+| Logistic regression | 0.676 | 0.352 | 0.008 |
+| Decision tree | 0.663 | 0.326 | 0.005 |
+| Random forest | 0.679 | 0.359 | 0.019 |
+| XGBoost | 0.683 | 0.366 | 0.003 |
+| **LightGBM** | **0.692** | **0.384** | **0.003** |
 
 LightGBM is the saved model. It adds hundreds of small trees, and each new tree corrects the policies the earlier trees got wrong. The GLM is still the model to read when you want one percentage effect: a typical gap in vehicle value multiplies the claim rate by about 1.16, and a typical gap in vehicle age multiplies it by about 0.82.
 
