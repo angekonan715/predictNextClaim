@@ -3,6 +3,8 @@ data/raw/*
 data/processed/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
+# The app needs these labels to build the form. The train and test files stay out.
+!data/processed/feature_levels.json
 
 # Python
 __pycache__/

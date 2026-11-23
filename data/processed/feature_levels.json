@@ -1,0 +1,65 @@
+{
+  "vehicle_value_cap": 71121.75,
+  "bonus_score": [
+    "G",
+    "N",
+    "B"
+  ],
+  "policy_type": [
+    "CC",
+    "COMP_E",
+    "TPG",
+    "COMP_N",
+    "TP"
+  ],
+  "business_type": [
+    "NB",
+    "P"
+  ],
+  "payment_frequency": [
+    "A",
+    "S",
+    "Q"
+  ],
+  "fuel_type": [
+    "D",
+    "G",
+    "Unknown"
+  ],
+  "vehicle_brand": [
+    "RENAULT",
+    "CITROEN",
+    "PEUGEOT",
+    "VOLKSWAGEN",
+    "FORD",
+    "OPEL",
+    "SEAT",
+    "Other",
+    "AUDI",
+    "MERCEDES",
+    "TOYOTA",
+    "BMW",
+    "NISSAN",
+    "HYUNDAI",
+    "FIAT",
+    "KIA",
+    "HONDA",
+    "VOLVO",
+    "CHEVROLET",
+    "SKODA",
+    "MAZDA",
+    "SUZUKI",
+    "MITSUBISHI",
+    "DAEWOO",
+    "DACIA"
+  ],
+  "municipality_type": [
+    "I",
+    "C",
+    "IS"
+  ],
+  "circulation_area": [
+    "U",
+    "R"
+  ]
+}
