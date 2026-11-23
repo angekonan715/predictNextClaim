@@ -3,6 +3,7 @@
 Run from the project root:
     streamlit run app/app.py
 """
+import io
 import json
 import sys
 from pathlib import Path
@@ -46,6 +47,36 @@ def style_axes(fig, ax) -> None:
         ax.spines[spine].set_visible(False)
     ax.spines["left"].set_color(LINE)
     ax.spines["bottom"].set_color(LINE)
+
+
+def show_chart(fig) -> None:
+    """Draw a chart at the width of its column, with no scrollbar."""
+    image = io.BytesIO()
+    fig.savefig(image, format="png", bbox_inches="tight", facecolor=CARD, dpi=130)
+    plt.close(fig)
+    st.image(image, width="stretch")
+
+
+def comparison_table(frame: pd.DataFrame) -> None:
+    """A plain table that fits the page. No sideways scrollbar."""
+    labels = {
+        "AUC": "Sorting score",
+        "Gini": "Gini",
+        "Brier": "Brier",
+        "calibration_gap": "Calibration gap",
+        "mean_predicted": "Predicted chance",
+    }
+    shown = frame.rename(columns=labels).round(3)
+    header = "".join(f"<th>{name}</th>" for name in ["Model", *shown.columns])
+    body = []
+    for name, row in shown.iterrows():
+        cells = "".join(f"<td>{row[column]:.3f}</td>" for column in shown.columns)
+        mark = "chosen" if name == "LightGBM" else ""
+        body.append(f'<tr class="{mark}"><td>{name}</td>{cells}</tr>')
+    st.markdown(
+        f'<table class="fit-table"><thead><tr>{header}</tr></thead><tbody>{"".join(body)}</tbody></table>',
+        unsafe_allow_html=True,
+    )
 
 
 def kpi_stack(items: list[tuple[str, str]]) -> None:
@@ -420,10 +451,44 @@ st.markdown(
       border-radius: 99px;
       background: {NAVY};
     }}
-    [data-testid="stImage"] img,
-    [data-testid="stPyplot"] img {{
+    .fit-table {{
+      width: 100%;
+      border-collapse: collapse;
+      background: {CARD};
+      border: 1px solid {LINE};
+      border-radius: 12px;
+      overflow: hidden;
+    }}
+    .fit-table th, .fit-table td {{
+      padding: 0.32rem 0.55rem;
+      text-align: right;
+      font-size: 0.92rem;
+      color: {INK};
+      border-bottom: 1px solid {LINE};
+    }}
+    .fit-table td:not(:first-child) {{
+      white-space: nowrap;
+    }}
+    .fit-table th {{
+      color: {MUTED};
+      font-weight: 650;
+    }}
+    .fit-table th:first-child, .fit-table td:first-child {{
+      text-align: left;
+    }}
+    .fit-table tr:last-child td {{
+      border-bottom: 0;
+    }}
+    .fit-table tr.chosen td {{
+      background: #E7EEF3;
+      color: {NAVY};
+      font-weight: 650;
+    }}
+    [data-testid="stImage"] img {{
       max-width: 100%;
       height: auto;
+      display: block;
+      margin: 0.35rem auto 0 auto;
     }}
     .st-key-models_page [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
     .st-key-drivers_page [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {{
@@ -440,6 +505,11 @@ st.markdown(
     .st-key-deck > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:has(.st-key-estimate_page) .stForm {{
       background: {CARD};
       box-shadow: 0 10px 28px rgba(27, 58, 75, 0.07);
+      padding-bottom: 0.15rem;
+      margin-bottom: 0;
+    }}
+    .st-key-deck > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:has(.st-key-estimate_page) [data-testid="stVerticalBlock"] {{
+      gap: 0.35rem;
     }}
     .st-key-result_card {{
       background: {NAVY};
@@ -667,32 +737,23 @@ with st.container(key="deck"):
                 "Trained on 2022–2023 and checked on 2024. A higher sorting score is better.",
             )
             if scores is not None:
-                table_col, chart_col = st.columns([1, 1.05], gap="medium")
-                with table_col:
-                    shown = scores.rename(columns={
-                        "AUC": "Sorting score",
-                        "calibration_gap": "Calibration gap",
-                        "mean_predicted": "Predicted chance",
-                    })
-                    st.dataframe(shown.round(3), width="stretch")
-                with chart_col:
-                    plot_df = scores.sort_values("AUC", ascending=True)
-                    fig, ax = plt.subplots(figsize=(5.6, 3.4))
-                    style_axes(fig, ax)
-                    bar_colors = [NAVY if name == "LightGBM" else SLATE for name in plot_df.index]
-                    ax.barh(plot_df.index.astype(str), plot_df["AUC"], color=bar_colors)
-                    span = float(plot_df["AUC"].max() - plot_df["AUC"].min())
-                    ax.set_xlim(
-                        float(plot_df["AUC"].min()) - max(0.02, span),
-                        float(plot_df["AUC"].max()) + 0.015,
-                    )
-                    ax.set_xlabel("Sorting score on 2024 (higher is better)")
-                    for i, value in enumerate(plot_df["AUC"]):
-                        ax.text(value + 0.001, i, f"{value:.3f}", va="center", fontsize=9, color=INK)
-                    fig.tight_layout()
-                    st.pyplot(fig)
-                    plt.close(fig)
-                    st.caption("The darkest bar is the model used in the app. The axis is zoomed in.")
+                comparison_table(scores)
+                plot_df = scores.sort_values("AUC", ascending=True)
+                fig, ax = plt.subplots(figsize=(8.0, 1.7))
+                style_axes(fig, ax)
+                bar_colors = [NAVY if name == "LightGBM" else SLATE for name in plot_df.index]
+                ax.barh(plot_df.index.astype(str), plot_df["AUC"], color=bar_colors)
+                span = float(plot_df["AUC"].max() - plot_df["AUC"].min())
+                ax.set_xlim(
+                    float(plot_df["AUC"].min()) - max(0.02, span),
+                    float(plot_df["AUC"].max()) + 0.012,
+                )
+                ax.set_xlabel("Sorting score on 2024 (higher is better)")
+                for i, value in enumerate(plot_df["AUC"]):
+                    ax.text(value + 0.001, i, f"{value:.3f}", va="center", fontsize=9, color=INK)
+                fig.tight_layout()
+                show_chart(fig)
+                st.caption("The darkest bar is the model used in the app. The axis is zoomed in.")
 
     with estimate:
         with st.container(key="estimate_page"):
@@ -808,8 +869,7 @@ with st.container(key="deck"):
                 for i, value in enumerate(plot["Share"]):
                     ax.text(value + 0.008, i, f"{value:.0%}", va="center", fontsize=9, color=INK)
                 fig.tight_layout()
-                st.pyplot(fig)
-                plt.close(fig)
+                show_chart(fig)
             with rank_col:
                 top = shares.head(5)
                 widest = float(top["Share"].max()) or 1
