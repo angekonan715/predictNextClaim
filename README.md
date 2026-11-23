@@ -4,13 +4,13 @@
 
 Which drivers are most likely to file a car insurance claim next year? This project estimates the probability that a policy has at least one claim, using three years of real, anonymised policy data from a Spanish motor insurer (2022–2024). It compares a formula (GLM), a logistic regression, a decision tree, a random forest, XGBoost, and LightGBM. LightGBM is the model in the web app.
 
-> 🚧 **Status:** in progress. Results and app link will be added as the project develops.
+> 🚧 **Status:** the app is live. The write-up is still being finished.
 
 ---
 
 ## Live app
 
-🔗 _Link coming soon (Streamlit Community Cloud)_
+https://angekonan715-predictnextclaim-appapp-vz9rsh.streamlit.app/
 
 <!-- Add a screenshot once the app is running:
 ![App screenshot](reports/figures/app_screenshot.png)

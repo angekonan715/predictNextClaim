@@ -22,7 +22,9 @@ st.set_page_config(page_title="Claim Risk Estimator", page_icon="🚗", layout="
 
 
 @st.cache_resource
-def get_model():
+def get_model(model_mtime: float):
+    # model_mtime is part of the cache key, so a replaced model file is loaded
+    # on the next visit instead of the copy kept in memory.
     return load_model()
 
 
@@ -38,7 +40,7 @@ if not config.MODEL_FILE.exists() or not levels_file.exists():
     st.warning("Train the model first: `python -m src.data_prep` then `python -m src.train`.")
     st.stop()
 
-bundle = get_model()
+bundle = get_model(config.MODEL_FILE.stat().st_mtime)
 cutoffs = bundle.get("tier_cutoffs", config.RISK_TIER_CUTOFFS)
 
 st.subheader("The model")
@@ -58,9 +60,9 @@ if comparison_file.exists():
         "AUC is a sorting score. Higher means the model puts drivers who really filed a claim above drivers who did not. "
         "The calibration gap checks the percentages: smaller means a predicted 20% chance really happens about 20% of the time."
     )
-    st.dataframe(pd.read_csv(comparison_file, index_col=0), use_container_width=True)
+    st.dataframe(pd.read_csv(comparison_file, index_col=0), width="stretch")
     if chart_file.exists():
-        st.image(str(chart_file), use_container_width=True)
+        st.image(str(chart_file), width="stretch")
     st.caption(
         "The orange bar is the model used below. The axis is zoomed in so small gaps are easier to see."
     )
@@ -173,7 +175,7 @@ with st.form("driver_info"):
         circulation_area = pick("circulation_area", "Usual driving")
     with power_col:
         power_to_weight_ratio = st.number_input("Weight per horsepower", 4.0, 40.0, 12.0, step=0.1)
-    submitted = st.form_submit_button("Estimate my risk", use_container_width=True)
+    submitted = st.form_submit_button("Estimate my risk", width="stretch")
 
 if submitted:
     user = pd.DataFrame([{
