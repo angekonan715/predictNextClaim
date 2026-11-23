@@ -259,11 +259,22 @@ st.markdown(
       margin: 0 0 0.8rem 0;
       line-height: 1.5;
     }}
+    .board,
+    .st-key-models_page,
+    .st-key-drivers_page {{
+      max-width: 980px;
+      margin: 0 auto;
+    }}
+    .st-key-deck > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:has(.st-key-estimate_page) > div {{
+      max-width: 980px;
+      margin-left: auto;
+      margin-right: auto;
+    }}
     .board {{
       display: flex;
       flex-direction: column;
       gap: 0.85rem;
-      height: calc(100vh - 10.6rem);
+      height: auto;
     }}
     .board-head h2 {{
       color: {NAVY};
@@ -279,8 +290,6 @@ st.markdown(
       line-height: 1.45;
     }}
     .board-grid {{
-      flex: 1;
-      min-height: 0;
       display: grid;
       gap: 0.85rem;
     }}
@@ -351,7 +360,6 @@ st.markdown(
       padding: 1.05rem 1.15rem 0.95rem 1.15rem;
       display: flex;
       flex-direction: column;
-      min-height: 0;
       box-shadow: 0 8px 22px rgba(27, 58, 75, 0.04);
     }}
     .panel h3 {{
@@ -371,8 +379,8 @@ st.markdown(
     }}
     .panel li + li {{ margin-top: 0.45rem; }}
     .panel .foot {{
-      margin-top: auto;
-      padding-top: 0.8rem;
+      margin-top: 0.85rem;
+      padding-top: 0.7rem;
       color: {MUTED};
       font-size: 0.88rem;
       border-top: 1px solid {LINE};
@@ -411,6 +419,11 @@ st.markdown(
       height: 6px;
       border-radius: 99px;
       background: {NAVY};
+    }}
+    [data-testid="stImage"] img,
+    [data-testid="stPyplot"] img {{
+      max-width: 100%;
+      height: auto;
     }}
     .st-key-models_page [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
     .st-key-drivers_page [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {{
@@ -619,21 +632,19 @@ with st.container(key="deck"):
                 Trained on real policies from a Spanish insurer, 2022–2023, and checked on 2024.</p>
               </header>
               <div class="metrics">
-                <div class="metric"><span>Sorting score on 2024</span><b>{auc}</b><p>0.50 is a coin flip. Closer to 1 puts drivers who claimed above drivers who did not.</p></div>
-                <div class="metric"><span>Calibration gap</span><b>{gap}</b><p>A predicted 20% chance really happens about 20% of the time.</p></div>
-                <div class="metric"><span>Average predicted chance</span><b>{chance}</b><p>Close to the share of 2024 policies that actually had a claim.</p></div>
+                <div class="metric"><span>Sorting score on 2024</span><b>{auc}</b><p>0.50 is a coin flip. Closer to 1 is better.</p></div>
+                <div class="metric"><span>Calibration gap</span><b>{gap}</b><p>A predicted 20% really happens about 20% of the time.</p></div>
+                <div class="metric"><span>Average predicted chance</span><b>{chance}</b><p>Near the share of 2024 policies that claimed.</p></div>
               </div>
               <div class="board-grid story">
                 <article class="panel">
                   <h3>What the model does</h3>
                   <p>{note}</p>
-                  <p style="margin-top:0.7rem">It only uses facts known on the first day: the driver, the car, the coverage, and where the car is driven. Claim counts and the premium are left out, because those are not known yet.</p>
-                  <p class="foot">Educational project. This is not an insurance quote.</p>
+                  <p class="foot">It uses facts known on day one. This is not an insurance quote.</p>
                 </article>
                 <article class="panel">
                   <h3>What a full year means</h3>
-                  <p>Some policies in the file were active for only part of the year, so they had less time to claim. The estimate asks about the next full year, with the policy in force the whole time.</p>
-                  <p class="foot">Low, Medium, and High split the 2024 full-year scores into thirds.</p>
+                  <p>The estimate is for a policy in force all next year. Low, Medium, and High are the lower, middle, and upper third of those scores.</p>
                 </article>
               </div>
               <div class="steps">
@@ -653,9 +664,7 @@ with st.container(key="deck"):
                 "02",
                 "Models",
                 "How the six models compared",
-                "They learned from 2022 and 2023, then took a test on 2024. "
-                "A higher sorting score puts drivers who really claimed above drivers who did not. "
-                "A smaller calibration gap means a predicted 20% chance really happens about 20% of the time.",
+                "Trained on 2022–2023 and checked on 2024. A higher sorting score is better.",
             )
             if scores is not None:
                 table_col, chart_col = st.columns([1, 1.05], gap="medium")
@@ -668,7 +677,7 @@ with st.container(key="deck"):
                     st.dataframe(shown.round(3), width="stretch")
                 with chart_col:
                     plot_df = scores.sort_values("AUC", ascending=True)
-                    fig, ax = plt.subplots(figsize=(6.4, 4.15))
+                    fig, ax = plt.subplots(figsize=(5.6, 3.4))
                     style_axes(fig, ax)
                     bar_colors = [NAVY if name == "LightGBM" else SLATE for name in plot_df.index]
                     ax.barh(plot_df.index.astype(str), plot_df["AUC"], color=bar_colors)
@@ -683,10 +692,7 @@ with st.container(key="deck"):
                     fig.tight_layout()
                     st.pyplot(fig)
                     plt.close(fig)
-                    st.caption(
-                        "The darkest bar is the model used on the next slide. "
-                        "The axis is zoomed in so small gaps are easier to see."
-                    )
+                    st.caption("The darkest bar is the model used in the app. The axis is zoomed in.")
 
     with estimate:
         with st.container(key="estimate_page"):
@@ -788,15 +794,12 @@ with st.container(key="deck"):
                 "03",
                 "Drivers of the score",
                 "What the model uses most",
-                "Each bar is the share of the model's decisions that use that fact. "
-                "Time on cover is the largest because a policy that was only active for part of the year "
-                "has less time to claim. The estimate is for a full year, so the other bars are what "
-                "change from one driver to the next.",
+                "Each bar is how much that fact is used. Time on cover is largest because a short policy has less time to claim.",
             )
             shares = feature_shares(bundle)
             chart_col, rank_col = st.columns([1.45, 0.7], gap="medium")
             with chart_col:
-                fig, ax = plt.subplots(figsize=(7.4, 5.1))
+                fig, ax = plt.subplots(figsize=(6.2, 4.2))
                 style_axes(fig, ax)
                 plot = shares.sort_values("Share", ascending=True)
                 ax.barh(plot["Fact"], plot["Share"], color=NAVY)
@@ -817,8 +820,7 @@ with st.container(key="deck"):
                 )
                 st.markdown(
                     f'<h3 style="margin:0.15rem 0 0.8rem 0;color:{NAVY};font-size:1rem;">Largest shares</h3>{rows}'
-                    '<p class="foot">The estimate on the next slide holds time on cover at a full year, '
-                    "so the other facts are what change from one driver to the next.</p>",
+                    '<p class="foot">The estimate holds time on cover at a full year.</p>',
                     unsafe_allow_html=True,
                 )
 
