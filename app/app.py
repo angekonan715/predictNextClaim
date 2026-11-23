@@ -145,7 +145,7 @@ def feature_shares(bundle: dict) -> pd.DataFrame:
 with st.form("driver_info"):
     driver_col, car_col = st.columns(2)
     with driver_col:
-        driver_age = st.slider("Driver age", 18, 90, 47)
+        driver_age = st.slider("Driver age", 16, 90, 47)
         years_licensed = st.slider("Years with a licence", 0, 60, 20)
         bonus_score = pick(
             "bonus_score",
