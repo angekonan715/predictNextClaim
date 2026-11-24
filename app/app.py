@@ -854,6 +854,14 @@ def relationship_images(train_mtime: float, test_mtime: float, layout: int = 2) 
     return as_png(correlation_chart(data)), as_png(claim_rate_chart(data)), caption
 
 
+if __import__("os").environ.get("SAVE_RELATIONSHIP_CHARTS") == "1":
+    heat_png, rate_png, brand_line = relationship_images(0, 0, 2)
+    config.FIGURES_DIR.mkdir(parents=True, exist_ok=True)
+    (config.FIGURES_DIR / "correlation_heatmap.png").write_bytes(heat_png)
+    (config.FIGURES_DIR / "claim_rate_by_field.png").write_bytes(rate_png)
+    print(brand_line)
+    raise SystemExit(0)
+
 comparison_file = config.FIGURES_DIR / "model_comparison.csv"
 scores = pd.read_csv(comparison_file, index_col=0) if comparison_file.exists() else None
 
@@ -935,12 +943,9 @@ with st.container(key="deck"):
                 "Numeric fields and a claim",
                 "Each cell is a correlation. 1 means the two fields rise together. The Claim row is the straight-line link with having at least one claim.",
             )
-            heat_png, rate_png, brand_caption = relationship_images(
-                config.TRAIN_FILE.stat().st_mtime,
-                config.TEST_FILE.stat().st_mtime,
-                2,
-            )
-            st.image(heat_png, width="stretch")
+            heat_file = config.FIGURES_DIR / "correlation_heatmap.png"
+            if heat_file.exists():
+                st.image(str(heat_file), width="stretch")
             st.caption(
                 "Driver age and vehicle age move together (0.86). "
                 "The strongest straight-line link with a claim is vehicle value (0.07). "
@@ -955,8 +960,12 @@ with st.container(key="deck"):
                 "Claim rate by field",
                 "Claims per 100 years on cover, for each field the model uses. A straight line misses several of these bends.",
             )
-            st.image(rate_png, width="stretch")
-            st.caption(brand_caption)
+            rate_file = config.FIGURES_DIR / "claim_rate_by_field.png"
+            if rate_file.exists():
+                st.image(str(rate_file), width="stretch")
+            st.caption(
+                "Brand is the remaining field. The rate runs from 15 per 100 years for DAEWOO to 27 for BMW."
+            )
 
     with compare:
         with st.container(key="models_page"):
