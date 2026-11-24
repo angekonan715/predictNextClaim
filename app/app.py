@@ -937,19 +937,32 @@ with st.container(key="deck"):
 
     with heat:
         with st.container(key="heat_page"):
-            slide_heading(
-                "05",
-                "Relationships",
-                "Numeric fields and a claim",
-                "Each cell is a correlation. 1 means the two fields rise together. The Claim row is the straight-line link with having at least one claim.",
-            )
-            heat_file = config.FIGURES_DIR / "correlation_heatmap.png"
-            if heat_file.exists():
-                st.image(str(heat_file), width="stretch")
-            st.caption(
-                "Driver age and vehicle age move together (0.86). "
-                "The strongest straight-line link with a claim is vehicle value (0.07). "
-                "Categories are on the next slide."
+            st.markdown(
+                """
+                <div class="board">
+                  <header class="board-head">
+                    <p class="kicker"><span>05</span> Which fields</p>
+                    <h2>12 kept from 47</h2>
+                    <p>A predictor has to be known on the first day of the policy year. Two day-one fields were then dropped because the claim rate barely moved.</p>
+                  </header>
+                  <div class="metrics">
+                    <div class="metric"><span>In the file</span><b>47</b><p>Every column that came with the dataset.</p></div>
+                    <div class="metric"><span>Known on day one</span><b>14</b><p>Driver, car, and policy facts. Time on cover is kept separately.</p></div>
+                    <div class="metric"><span>Used in the model</span><b>12</b><p>Seats and home area are the two that were left out.</p></div>
+                  </div>
+                  <div class="board-grid why-grid">
+                    <article class="panel">
+                      <h3>Never candidates</h3>
+                      <p>32 columns are an id, the year, the premium, a claim count, a claim cost, a cancellation, or liability exposure. The premium would copy the current price. The claim columns are the answer.</p>
+                    </article>
+                    <article class="panel">
+                      <h3>Left out after a check</h3>
+                      <p>Seats and home area. Most cars have 5 seats. Inland, coast, and islands differ by about 3 claims per 100 years. Each was 0.6% of the model's splits.</p>
+                    </article>
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
             )
 
     with rates:
@@ -958,7 +971,7 @@ with st.container(key="deck"):
                 "06",
                 "Patterns",
                 "Claim rate by field",
-                "Claims per 100 years on cover, for each field the model uses. A straight line misses several of these bends.",
+                "Claims per 100 years on cover for the 12 fields the model uses. Coverage, vehicle age, and past claims bend, so one straight line would miss them.",
             )
             rate_file = config.FIGURES_DIR / "claim_rate_by_field.png"
             if rate_file.exists():
@@ -1159,11 +1172,11 @@ with st.container(key="deck"):
                   <div class="board-grid why-grid">
                     <article class="panel">
                       <h3>Adjustments</h3>
-                      <p>Missing fuel is coded Unknown. Vehicle value is capped at 71,122. Brands under 1,000 training policies become Other. 353,573 of 354,140 rows remain.</p>
+                      <p>Missing fuel is coded Unknown. Vehicle value is capped at 71,122. Brands under 1,000 training policies become Other.</p>
                     </article>
                     <article class="panel">
-                      <h3>Excluded</h3>
-                      <p>Premiums, claim counts, claim costs, and policy status are known only after the year starts. Seats and home area were removed: each was 0.6% of the splits.</p>
+                      <h3>Rows removed</h3>
+                      <p>A row is dropped when time on cover is zero, a required number is missing, an age is negative, or weight per horsepower is zero. 353,573 of 354,140 rows remain.</p>
                     </article>
                   </div>
                 </div>
