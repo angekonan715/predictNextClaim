@@ -651,12 +651,15 @@ st.markdown(
     .st-key-deck > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:has(.st-key-estimate_page) [data-testid="stVerticalBlock"] {{
       gap: 0.05rem;
     }}
+    .st-key-estimate_page [data-testid="stHorizontalBlock"]:has(.st-key-result_card) {{
+      align-items: flex-start;
+    }}
     .st-key-result_card {{
       background: {NAVY};
       border-radius: 16px;
-      padding: 0.55rem 0.9rem 0.4rem 0.9rem;
+      padding: 0.7rem 0.85rem 0.55rem 0.85rem;
       box-shadow: 0 12px 28px rgba(27, 58, 75, 0.16);
-      margin: 0 0 0.35rem 0;
+      margin: 0;
     }}
     .st-key-result_card .kicker,
     .st-key-result_card .kicker span {{
@@ -854,14 +857,6 @@ def relationship_images(train_mtime: float, test_mtime: float, layout: int = 2) 
     return as_png(correlation_chart(data)), as_png(claim_rate_chart(data)), caption
 
 
-if __import__("os").environ.get("SAVE_RELATIONSHIP_CHARTS") == "1":
-    heat_png, rate_png, brand_line = relationship_images(0, 0, 2)
-    config.FIGURES_DIR.mkdir(parents=True, exist_ok=True)
-    (config.FIGURES_DIR / "correlation_heatmap.png").write_bytes(heat_png)
-    (config.FIGURES_DIR / "claim_rate_by_field.png").write_bytes(rate_png)
-    print(brand_line)
-    raise SystemExit(0)
-
 comparison_file = config.FIGURES_DIR / "model_comparison.csv"
 scores = pd.read_csv(comparison_file, index_col=0) if comparison_file.exists() else None
 
@@ -999,49 +994,52 @@ with st.container(key="deck"):
                 "One full policy year",
                 "Facts known on day one. Time on cover is fixed at 1.",
             )
-            result_slot = st.empty()
-            with st.form("driver_info"):
-                a, b, c = st.columns(3)
-                with a:
-                    driver_age = st.slider("Driver age", 16, 90, 47)
-                with b:
-                    years_licensed = st.slider("Years with a licence", 0, 60, 20)
-                with c:
-                    vehicle_age = st.slider("Vehicle age (years)", 0, 40, 24)
-                d, e, f = st.columns(3)
-                with d:
-                    value_cap = int(levels.get("vehicle_value_cap", 150000))
-                    vehicle_value = st.number_input(
-                        "Vehicle value", 1000, max(value_cap, 1000), min(25000, value_cap), step=500,
-                    )
-                with e:
-                    vehicle_brand = pick("vehicle_brand", "Brand")
-                with f:
-                    fuel_type = pick("fuel_type", "Fuel")
-                g, h, i = st.columns(3)
-                with g:
-                    bonus_score = pick(
-                        "bonus_score",
-                        "Past claims",
-                        "Insurer record from before this year: good, neutral, or poor.",
-                    )
-                with h:
-                    business_type = pick("business_type", "Policy is")
-                with i:
-                    payment_frequency = pick(
-                        "payment_frequency",
-                        "Payment",
-                        "Billing schedule. A higher claim rate here is an association, not a cause.",
-                    )
-                policy_type = pick("policy_type", "Coverage")
-                j, k = st.columns(2)
-                with j:
-                    circulation_area = pick("circulation_area", "Usual driving")
-                with k:
-                    power_to_weight_ratio = st.number_input(
-                        "Weight per horsepower", 4.0, 40.0, 12.0, step=0.1,
-                    )
-                submitted = st.form_submit_button("Estimate my risk", width="stretch")
+            form_col, result_col = st.columns([1.7, 0.72], gap="small")
+            with form_col:
+                with st.form("driver_info"):
+                    a, b, c = st.columns(3)
+                    with a:
+                        driver_age = st.slider("Driver age", 16, 90, 47)
+                    with b:
+                        years_licensed = st.slider("Years with a licence", 0, 60, 20)
+                    with c:
+                        vehicle_age = st.slider("Vehicle age (years)", 0, 40, 24)
+                    d, e, f = st.columns(3)
+                    with d:
+                        value_cap = int(levels.get("vehicle_value_cap", 150000))
+                        vehicle_value = st.number_input(
+                            "Vehicle value", 1000, max(value_cap, 1000), min(25000, value_cap), step=500,
+                        )
+                    with e:
+                        vehicle_brand = pick("vehicle_brand", "Brand")
+                    with f:
+                        fuel_type = pick("fuel_type", "Fuel")
+                    g, h, i = st.columns(3)
+                    with g:
+                        bonus_score = pick(
+                            "bonus_score",
+                            "Past claims",
+                            "Insurer record from before this year: good, neutral, or poor.",
+                        )
+                    with h:
+                        business_type = pick("business_type", "Policy is")
+                    with i:
+                        payment_frequency = pick(
+                            "payment_frequency",
+                            "Payment",
+                            "Billing schedule. A higher claim rate here is an association, not a cause.",
+                        )
+                    policy_type = pick("policy_type", "Coverage")
+                    j, k = st.columns(2)
+                    with j:
+                        circulation_area = pick("circulation_area", "Usual driving")
+                    with k:
+                        power_to_weight_ratio = st.number_input(
+                            "Weight per horsepower", 4.0, 40.0, 12.0, step=0.1,
+                        )
+                    submitted = st.form_submit_button("Estimate my risk", width="stretch")
+            with result_col:
+                result_slot = st.empty()
 
         if submitted:
             user = pd.DataFrame([{
@@ -1066,21 +1064,15 @@ with st.container(key="deck"):
         with result_slot.container():
             with st.container(key="result_card"):
                 st.markdown('<p class="kicker">Result</p>', unsafe_allow_html=True)
-                chance_col, group_col = st.columns(2)
                 if "last_prob" in st.session_state:
-                    with chance_col:
-                        st.metric("Chance next year", f"{st.session_state['last_prob']:.1%}")
-                    with group_col:
-                        st.metric("Risk group", st.session_state["last_tier"])
+                    st.metric("Chance next year", f"{st.session_state['last_prob']:.1%}")
+                    st.metric("Risk group", st.session_state["last_tier"])
                     st.caption(
-                        f"Low is under {cutoffs['Low']:.1%}. Medium is under {cutoffs['Medium']:.1%}. "
-                        "High is above that."
+                        f"Low is under {cutoffs['Low']:.1%}. Medium is under {cutoffs['Medium']:.1%}."
                     )
                 else:
-                    with chance_col:
-                        st.metric("Chance next year", "—")
-                    with group_col:
-                        st.metric("Risk group", "—")
+                    st.metric("Chance next year", "—")
+                    st.metric("Risk group", "—")
                     st.caption("The chance and the group appear here.")
 
     with choice:
