@@ -11,7 +11,7 @@ The file used here is `Dataset of motor insurance portfolio.csv`. Fields are sep
 
 ## Citation
 
-Espinosa, P., Lledó, J., & Atance del Olmo, D. (2026). *A detailed dataset of motor insurance policies with coverage-specific financial information.* Mendeley Data, V1. https://doi.org/10.17632/sw4jmdb2sm.1
+Espinosa, Priscila; Lledó, Josep; Atance, David (2026), “A detailed dataset of motor insurance policies with coverage-specific financial information”, Mendeley Data, V1, doi: 10.17632/sw4jmdb2sm.1
 
 Check the license shown on the Mendeley page before redistributing any part of the data.
 

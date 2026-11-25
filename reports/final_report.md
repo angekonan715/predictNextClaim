@@ -10,7 +10,7 @@ An insurer already knows a few facts when a policy year starts: who drives, what
 
 ## 2. The data
 
-The data are anonymised motor policies from a Spanish insurer, published by Espinosa, Lledó, and Atance del Olmo (2026) on Mendeley Data (DOI 10.17632/sw4jmdb2sm.1). Each row is one policy in one calendar year. The file has 354,140 rows, 47 columns, and the years 2022, 2023, and 2024.
+The data are anonymised motor policies from a Spanish insurer. Espinosa, Priscila; Lledó, Josep; Atance, David (2026), “A detailed dataset of motor insurance policies with coverage-specific financial information”, Mendeley Data, V1, doi: 10.17632/sw4jmdb2sm.1. Each row is one policy in one calendar year. The file has 354,140 rows, 47 columns, and the years 2022, 2023, and 2024.
 
 There is no 2025 or 2026 outcome in the file. "Next year" is handled by training on 2022–2023 and testing on 2024. That is an out-of-time test: the model is judged on a year it did not learn from.
 

@@ -908,7 +908,7 @@ with st.container(key="deck"):
                   <header class="board-head">
                     <p class="kicker"><span>02</span> The data</p>
                     <h2>Source and design</h2>
-                    <p>Anonymised motor policies from a Spanish insurer. Espinosa, Lledó, and Atance del Olmo (2026), Mendeley Data.</p>
+                    <p>Anonymised motor policies from a Spanish insurer. Espinosa, Priscila; Lledó, Josep; Atance, David (2026), “A detailed dataset of motor insurance policies with coverage-specific financial information”, Mendeley Data, V1, doi: 10.17632/sw4jmdb2sm.1.</p>
                   </header>
                   <div class="metrics">
                     <div class="metric"><span>Policy-years</span><b>354,140</b><p>One row is one policy in one calendar year.</p></div>

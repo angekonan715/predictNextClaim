@@ -18,7 +18,7 @@ https://angekonan715-predictnextclaim-appapp-vz9rsh.streamlit.app/
 
 ## Data
 
-- **Source:** Espinosa, P., Lledó, J., & Atance del Olmo, D. (2026). *A detailed dataset of motor insurance policies with coverage-specific financial information.* Mendeley Data, V1. https://doi.org/10.17632/sw4jmdb2sm.1
+- **Source:** Espinosa, Priscila; Lledó, Josep; Atance, David (2026), “A detailed dataset of motor insurance policies with coverage-specific financial information”, Mendeley Data, V1, doi: 10.17632/sw4jmdb2sm.1
 - **Coverage:** anonymised policies from a Spanish insurer, January 2022 – December 2024
 - **Size:** about 354,000 policy-year observations and 47 variables (policy, driver, vehicle, premiums, exposure, claims by coverage)
 
