@@ -92,8 +92,25 @@ def predict_frame(model_type: str, model, data: pd.DataFrame) -> np.ndarray:
         offset = np.log(data[config.EXPOSURE_COL].astype(float))
         return np.asarray(model.predict(data, offset=offset))
 
-    columns = model_columns(model)
-    prepared = _prepare(model, data, columns) if columns else data
+    steps = getattr(model, "named_steps", None)
+    preprocess = steps.get("preprocess") if steps else None
+    estimator = steps.get("model") if steps else None
+    names: list[str] = []
+    fitted = getattr(preprocess, "feature_names_in_", None) if preprocess is not None else None
+    if fitted is not None:
+        names.extend(str(name) for name in fitted)
+    for name in model_columns(model):
+        if name not in names:
+            names.append(name)
+    prepared = _prepare(model, data, names) if names else data
+    if preprocess is not None and estimator is not None:
+        # The hosted app's LightGBM build looks column names up on a table.
+        # Hand it a plain numeric array, which is what this model was trained on.
+        transformed = preprocess.transform(prepared)
+        if hasattr(transformed, "toarray"):
+            transformed = transformed.toarray()
+        transformed = np.asarray(transformed, dtype=float)
+        return np.asarray(estimator.predict_proba(transformed)[:, 1])
     return np.asarray(model.predict_proba(prepared)[:, 1])
 
 

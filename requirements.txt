@@ -1,12 +1,12 @@
-pandas>=2.2
-numpy>=1.26
+pandas==3.0.2
+numpy==2.4.4
 openpyxl>=3.1
 matplotlib>=3.8
 seaborn>=0.13
 lets-plot>=4.6
 statsmodels>=0.14
-scikit-learn>=1.8,<1.9
-lightgbm>=4.3
+scikit-learn==1.8.0
+lightgbm==4.7.0
 xgboost>=2.0
 shap>=0.45
 joblib>=1.3
